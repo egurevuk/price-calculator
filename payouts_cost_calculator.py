@@ -185,13 +185,40 @@ def parse_int_input(raw: str, label: str):
 
 
 # --- Logo + Title ---
-st.markdown("""
-<div style="display:flex; align-items:center; gap:10px; margin-bottom:0.5rem;">
-    <svg width="28" height="28" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M20 4L36 13V27L20 36L4 27V13L20 4Z" fill="#7c3aed" opacity="0.9"/>
-        <path d="M13 18C13 15.8 14.8 14 17 14H23C25.2 14 27 15.8 27 18C27 20.2 25.2 22 23 22H17C14.8 22 13 23.8 13 26C13 28.2 14.8 30 17 30H27" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
-    </svg>
-    <span style="font-size:1.3rem; font-weight:700; color:white; letter-spacing:-0.01em;">Stape</span>
+import base64, os
+
+# Fallback SVG logo (approximation of the Stape brand mark)
+_FALLBACK_SVG = """<svg width="120" height="48" viewBox="0 0 120 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="topRibbon" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#c084fc"/>
+      <stop offset="100%" stop-color="#7c3aed"/>
+    </linearGradient>
+    <linearGradient id="bottomRibbon" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#7c3aed"/>
+      <stop offset="100%" stop-color="#4c1d95"/>
+    </linearGradient>
+  </defs>
+  <path d="M8 8 C8 8 10 4 16 4 L32 4 C38 4 40 8 40 12 C40 16 38 20 32 20 L16 20 C12 20 8 22 8 28"
+        stroke="url(#topRibbon)" stroke-width="7" stroke-linecap="round" fill="none"/>
+  <path d="M40 20 C40 26 36 28 32 28 L16 28 C10 28 8 32 8 36 C8 40 10 44 16 44 L32 44 C38 44 40 40 40 40"
+        stroke="url(#bottomRibbon)" stroke-width="7" stroke-linecap="round" fill="none"/>
+</svg>"""
+
+def _load_logo():
+    """Load logo from stape_logo.png if present, else use inline SVG."""
+    logo_path = os.path.join(os.path.dirname(__file__), "stape_logo.png")
+    if os.path.exists(logo_path):
+        with open(logo_path, "rb") as f:
+            b64 = base64.b64encode(f.read()).decode()
+        return f'<img src="data:image/png;base64,{b64}" height="44" style="display:block;" />'
+    else:
+        b64 = base64.b64encode(_FALLBACK_SVG.encode()).decode()
+        return f'<img src="data:image/svg+xml;base64,{b64}" height="44" style="display:block;" />'
+
+st.markdown(f"""
+<div style="display:flex; align-items:center; gap:12px; margin-bottom:0.5rem;">
+    {_load_logo()}
 </div>
 """, unsafe_allow_html=True)
 
