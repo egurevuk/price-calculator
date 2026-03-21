@@ -7,6 +7,18 @@ st.markdown("Calculate the total cost of your payouts including FX and processin
 
 st.divider()
 
+
+# --- Formatting helpers ---
+def fmt_usd(n):
+    """Format a number as USD with space as thousands separator, no decimals."""
+    return "$" + f"{n:,.0f}".replace(",", " ")
+
+
+def fmt_num(n):
+    """Format a number with space as thousands separator, no decimals."""
+    return f"{n:,.0f}".replace(",", " ")
+
+
 # --- Inputs ---
 st.subheader("Enter Payout Details")
 
@@ -24,10 +36,10 @@ with col1:
 with col2:
     payouts_volume = st.number_input(
         "Payouts Volume (USD)",
-        min_value=0.0,
-        value=10000.0,
-        step=100.0,
-        format="%.2f",
+        min_value=0,
+        value=10000,
+        step=100,
+        format="%d",
         help="Total USD volume of all payouts combined."
     )
 
@@ -46,20 +58,20 @@ with col4:
     if cost_type == "Fixed (USD per payout)":
         payouts_cost = st.number_input(
             "Payouts Cost (USD per payout)",
-            min_value=0.0,
-            value=0.25,
-            step=0.01,
-            format="%.4f",
-            help="Fixed cost charged per individual payout."
+            min_value=0,
+            value=1,
+            step=1,
+            format="%d",
+            help="Fixed cost in USD charged per individual payout."
         )
     else:
         payouts_cost = st.number_input(
             "Payouts Cost (% of volume)",
-            min_value=0.0,
-            max_value=100.0,
-            value=1.0,
-            step=0.01,
-            format="%.4f",
+            min_value=0,
+            max_value=100,
+            value=1,
+            step=1,
+            format="%d",
             help="Percentage of total volume charged as a processing fee."
         )
 
@@ -69,7 +81,7 @@ fx_rate = st.number_input(
     max_value=100.0,
     value=1.5,
     step=0.01,
-    format="%.4f",
+    format="%.2f",
     help="Foreign exchange markup applied to the total payout volume."
 )
 
@@ -80,10 +92,10 @@ fx_cost = (fx_rate / 100) * payouts_volume
 
 if cost_type == "Fixed (USD per payout)":
     processing_cost = payouts_cost * amount_of_payouts
-    formula_label = f"${payouts_cost:.4f} × {amount_of_payouts:,} payouts"
+    formula_label = f"${fmt_num(payouts_cost)} × {fmt_num(amount_of_payouts)} payouts"
 else:
     processing_cost = (payouts_cost / 100) * payouts_volume
-    formula_label = f"{payouts_cost:.4f}% × ${payouts_volume:,.2f} volume"
+    formula_label = f"{payouts_cost}% × {fmt_usd(payouts_volume)} volume"
 
 total_cost = fx_cost + processing_cost
 
@@ -95,21 +107,21 @@ res_col1, res_col2, res_col3 = st.columns(3)
 with res_col1:
     st.metric(
         label="FX Cost",
-        value=f"${fx_cost:,.2f}",
-        help=f"{fx_rate:.4f}% × ${payouts_volume:,.2f} volume"
+        value=fmt_usd(fx_cost),
+        help=f"{fx_rate:.2f}% × {fmt_usd(payouts_volume)} volume"
     )
 
 with res_col2:
     st.metric(
         label="Processing Cost",
-        value=f"${processing_cost:,.2f}",
+        value=fmt_usd(processing_cost),
         help=formula_label
     )
 
 with res_col3:
     st.metric(
         label="Total Cost",
-        value=f"${total_cost:,.2f}",
+        value=fmt_usd(total_cost),
     )
 
 # --- Formula Breakdown ---
@@ -121,9 +133,9 @@ with st.expander("🔍 How this was calculated"):
 `Cost = FX Rate × Volume + Payouts Cost × Number of Payouts`
 
 **Values:**
-- FX Cost: `{fx_rate:.4f}% × ${payouts_volume:,.2f}` = **${fx_cost:,.2f}**
-- Processing Cost: `${payouts_cost:.4f} × {amount_of_payouts:,}` = **${processing_cost:,.2f}**
-- **Total Cost = ${fx_cost:,.2f} + ${processing_cost:,.2f} = ${total_cost:,.2f}**
+- FX Cost: `{fx_rate:.2f}% × {fmt_usd(payouts_volume)}` = **{fmt_usd(fx_cost)}**
+- Processing Cost: `{fmt_usd(payouts_cost)} × {fmt_num(amount_of_payouts)} payouts` = **{fmt_usd(processing_cost)}**
+- **Total Cost = {fmt_usd(fx_cost)} + {fmt_usd(processing_cost)} = {fmt_usd(total_cost)}**
         """)
     else:
         st.markdown(f"""
@@ -132,9 +144,9 @@ with st.expander("🔍 How this was calculated"):
 `Cost = FX Rate × Volume + Payouts Cost (%) × Volume`
 
 **Values:**
-- FX Cost: `{fx_rate:.4f}% × ${payouts_volume:,.2f}` = **${fx_cost:,.2f}**
-- Processing Cost: `{payouts_cost:.4f}% × ${payouts_volume:,.2f}` = **${processing_cost:,.2f}**
-- **Total Cost = ${fx_cost:,.2f} + ${processing_cost:,.2f} = ${total_cost:,.2f}**
+- FX Cost: `{fx_rate:.2f}% × {fmt_usd(payouts_volume)}` = **{fmt_usd(fx_cost)}**
+- Processing Cost: `{payouts_cost}% × {fmt_usd(payouts_volume)}` = **{fmt_usd(processing_cost)}**
+- **Total Cost = {fmt_usd(fx_cost)} + {fmt_usd(processing_cost)} = {fmt_usd(total_cost)}**
         """)
 
 st.caption("All values are in USD.")
