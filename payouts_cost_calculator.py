@@ -40,10 +40,10 @@ st.markdown("""
 
     /* Input fields */
     .stTextInput input, .stNumberInput input {
-        background-color: rgba(255,255,255,0.07) !important;
+        background-color: #ffffff !important;
         border: 1px solid rgba(255,255,255,0.15) !important;
         border-radius: 8px !important;
-        color: #ffffff !important;
+        color: #111111 !important;
     }
     .stTextInput input:focus, .stNumberInput input:focus {
         border-color: #7c3aed !important;
@@ -57,7 +57,7 @@ st.markdown("""
         padding: 0.5rem 0.75rem;
     }
     .stRadio div[role="radiogroup"] label {
-        color: #e2d9f3 !important;
+        color: #ffffff !important;
     }
 
     /* Metric cards */
