@@ -168,6 +168,14 @@ st.markdown("""
 def fmt_usd(n):
     return "$" + f"{n:,.0f}".replace(",", " ")
 
+def fmt_delta(n):
+    """Format delta with sign before $ so Streamlit's leading-minus detection works correctly."""
+    if n < 0:
+        return "-$" + f"{abs(n):,.0f}".replace(",", " ")
+    elif n > 0:
+        return "+$" + f"{n:,.0f}".replace(",", " ")
+    return "$0"
+
 def fmt_num(n):
     return f"{n:,.0f}".replace(",", " ")
 
@@ -340,15 +348,15 @@ if not has_errors:
     r4, r5, r6 = st.columns(3)
     with r4:
         st.metric("Stape FX Cost", fmt_usd(stape_fx_cost),
-                  delta=fmt_usd(stape_fx_cost - curr_fx_cost) if stape_fx_cost != curr_fx_cost else None,
+                  delta=fmt_delta(stape_fx_cost - curr_fx_cost) if stape_fx_cost != curr_fx_cost else None,
                   delta_color="inverse")
     with r5:
         st.metric("Stape Processing Cost", fmt_usd(stape_proc_cost),
-                  delta=fmt_usd(stape_proc_cost - curr_proc_cost) if stape_proc_cost != curr_proc_cost else None,
+                  delta=fmt_delta(stape_proc_cost - curr_proc_cost) if stape_proc_cost != curr_proc_cost else None,
                   delta_color="inverse")
     with r6:
         st.metric("Stape Total Cost", fmt_usd(stape_total),
-                  delta=fmt_usd(stape_total - curr_total) if stape_total != curr_total else None,
+                  delta=fmt_delta(stape_total - curr_total) if stape_total != curr_total else None,
                   delta_color="inverse")
 
     st.markdown("<div style='height:1rem'></div>", unsafe_allow_html=True)
