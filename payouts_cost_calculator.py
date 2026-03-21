@@ -285,7 +285,7 @@ with curr_col:
     else:
         current_payout_cost = st.number_input(
             "Current Payout Cost (% of volume)",
-            min_value=0.0, max_value=100.0, value=2.0, step=0.01, format="%.2f",
+            min_value=0.0, max_value=100.0, value=3.0, step=0.01, format="%.2f",
             help="% of volume fee you currently pay.",
             key="curr_pc"
         )
@@ -315,7 +315,7 @@ with stape_col:
     else:
         stape_payout_cost = st.number_input(
             "Stape Payout Cost (% of volume)",
-            min_value=0.0, max_value=100.0, value=0.5, step=0.01, format="%.2f",
+            min_value=0.0, max_value=100.0, value=2.0, step=0.01, format="%.2f",
             help="% of volume fee charged by Stape.",
             key="stape_pc"
         )
