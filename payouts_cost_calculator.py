@@ -6,9 +6,22 @@ st.set_page_config(
     layout="centered"
 )
 
-# ── Stape fixed pricing (update here if rates change) ─────────────────────────
-STAPE_FX_RATE    = 2.0   # % of volume
-STAPE_PAYOUT_FEE = 40    # USD per payout (fixed)
+# ── Stape pricing (update here if rates change) ───────────────────────────────
+STAPE_FX_RATE = 2.0   # % of volume
+
+STAPE_TIERS = [
+    (1,   9,  50),   # 1–9 payouts   → $50/payout
+    (10,  25, 45),   # 10–25         → $45/payout
+    (26,  50, 40),   # 26–50         → $40/payout
+    (51, None, 35),  # 51+           → $35/payout
+]
+
+def stape_fee_per_payout(n: int) -> int:
+    """Return Stape's per-payout fee based on number of payouts."""
+    for low, high, fee in STAPE_TIERS:
+        if high is None or n <= high:
+            return fee
+    return STAPE_TIERS[-1][2]
 
 # ── Theme ─────────────────────────────────────────────────────────────────────
 st.markdown("""
@@ -189,7 +202,10 @@ st.markdown("<p style='color:#b8a8d8;margin-bottom:1.4rem;font-size:0.95rem;'>En
 st.markdown(f"""
 <div class="stape-rates-bar">
     <span class="bar-label">Stape pricing</span>
-    <span class="pill">${STAPE_PAYOUT_FEE} per payout</span>
+    <span class="pill">1–9 payouts: $50</span>
+    <span class="pill">10–25: $45</span>
+    <span class="pill">26–50: $40</span>
+    <span class="pill">51+: $35</span>
     <span class="pill">{STAPE_FX_RATE:.0f}% FX rate</span>
 </div>
 """, unsafe_allow_html=True)
@@ -251,10 +267,11 @@ if not has_errors:
                        else (current_payout_cost / 100) * payouts_volume)
     curr_total      = curr_fx_cost + curr_proc_cost
 
+    stape_fee       = stape_fee_per_payout(amount_of_payouts)
     stape_fx_cost   = (STAPE_FX_RATE / 100) * payouts_volume
-    stape_proc_cost = STAPE_PAYOUT_FEE * amount_of_payouts
+    stape_proc_cost = stape_fee * amount_of_payouts
     stape_total     = stape_fx_cost + stape_proc_cost
-    stape_proc_label = f"${STAPE_PAYOUT_FEE} × {fmt_num(amount_of_payouts)} payouts"
+    stape_proc_label = f"${stape_fee} × {fmt_num(amount_of_payouts)} payouts"
 
     savings     = curr_total - stape_total
     savings_pct = (savings / curr_total * 100) if curr_total > 0 else 0
