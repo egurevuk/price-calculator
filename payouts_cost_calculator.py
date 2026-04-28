@@ -7,8 +7,8 @@ st.set_page_config(
 )
 
 # ── Stape fixed pricing (update here if rates change) ─────────────────────────
-STAPE_FX_RATE    = 1.0   # % of volume
-STAPE_PAYOUT_FEE = 35    # USD per payout (fixed)
+STAPE_FX_RATE    = 2.0   # % of volume
+STAPE_PAYOUT_FEE = 40    # USD per payout (fixed)
 
 # ── Theme ─────────────────────────────────────────────────────────────────────
 st.markdown("""
@@ -127,6 +127,20 @@ st.markdown("""
     .savings-banner .s-label { color: #c4b5e8; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.3rem; }
     .savings-banner .s-value { color: #a78bfa; font-size: 2.6rem; font-weight: 800; line-height: 1.1; }
     .savings-banner .s-sub   { color: #a78bfa; font-size: 0.88rem; margin-top: 0.35rem; opacity: 0.85; }
+
+    /* ── savings banner — green variant ── */
+    .savings-banner-green {
+        background: linear-gradient(135deg, rgba(16,185,129,0.22), rgba(5,150,105,0.14));
+        border: 1.5px solid rgba(52,211,153,0.55);
+        border-radius: 16px;
+        padding: 1.6rem 2rem;
+        text-align: center;
+        margin: 1.2rem 0;
+        box-shadow: 0 0 32px rgba(16,185,129,0.12);
+    }
+    .savings-banner-green .s-label { color: #6ee7b7; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.09em; margin-bottom: 0.3rem; }
+    .savings-banner-green .s-value { color: #34d399; font-size: 2.8rem; font-weight: 800; line-height: 1.1; text-shadow: 0 0 24px rgba(52,211,153,0.45); }
+    .savings-banner-green .s-sub   { color: #6ee7b7; font-size: 0.88rem; margin-top: 0.4rem; }
 
     /* ── divider ── */
     hr { border-color: rgba(255,255,255,0.08) !important; }
@@ -248,8 +262,8 @@ if not has_errors:
     # ── Savings banner (hero) ─────────────────────────────────────────────────
     if savings > 0:
         st.markdown(f"""
-        <div class="savings-banner">
-            <div class="s-label">Your savings with Stape</div>
+        <div class="savings-banner-green">
+            <div class="s-label">💰 Your savings with Stape</div>
             <div class="s-value">{fmt_usd(savings)}</div>
             <div class="s-sub">That's {savings_pct:.1f}% less than your current costs</div>
         </div>""", unsafe_allow_html=True)
