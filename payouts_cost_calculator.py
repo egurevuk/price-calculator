@@ -198,7 +198,11 @@ st.markdown(f'<img src="data:image/svg+xml;base64,{_LOGO_B64}" height="48" style
 st.markdown("<h1 style='color:white;font-size:1.9rem;font-weight:800;margin-bottom:0.25rem;'>Payouts Cost Calculator</h1>", unsafe_allow_html=True)
 st.markdown("<p style='color:#b8a8d8;margin-bottom:1.4rem;font-size:0.95rem;'>Enter your current payout costs below to see how much you could save.</p>", unsafe_allow_html=True)
 
+# ── FX toggle (resolved before the bar so bar can react) ──────────────────────
+include_fx = st.checkbox("I have FX to local currency", value=False)
+
 # ── Stape pricing: subtle reference bar ───────────────────────────────────────
+fx_pill = f'<span class="pill">{STAPE_FX_RATE:.0f}% FX rate</span>' if include_fx else ""
 st.markdown(f"""
 <div class="stape-rates-bar">
     <span class="bar-label">Stape pricing</span>
@@ -206,7 +210,7 @@ st.markdown(f"""
     <span class="pill">10–25: $45</span>
     <span class="pill">26–50: $40</span>
     <span class="pill">51+: $35</span>
-    <span class="pill">{STAPE_FX_RATE:.0f}% FX rate</span>
+    {fx_pill}
 </div>
 """, unsafe_allow_html=True)
 
@@ -228,13 +232,22 @@ with c2:
     if volume_err: st.error(volume_err)
     payouts_volume = volume_val if volume_val is not None else 0
 
-c3, c4 = st.columns(2)
-with c3:
-    current_fx = st.number_input("Your FX Rate (%)", min_value=0.0, max_value=100.0,
-                                 value=2.5, step=0.01, format="%.2f",
-                                 help="FX markup you currently pay.")
-
-with c4:
+# FX rate field — only shown when checkbox is on
+if include_fx:
+    c3, c4 = st.columns(2)
+    with c3:
+        current_fx = st.number_input("Your FX Rate (%)", min_value=0.0, max_value=100.0,
+                                     value=2.5, step=0.01, format="%.2f",
+                                     help="FX markup you currently pay.")
+    with c4:
+        curr_cost_type = st.radio(
+            "Payout Cost Type",
+            options=["Fixed (USD per payout)", "Percentage (% of volume)"],
+            index=1,
+            help="How your provider charges the processing fee."
+        )
+else:
+    current_fx = 0.0
     curr_cost_type = st.radio(
         "Payout Cost Type",
         options=["Fixed (USD per payout)", "Percentage (% of volume)"],
@@ -261,14 +274,14 @@ st.markdown('</div>', unsafe_allow_html=True)
 has_errors = amount_err or volume_err
 
 if not has_errors:
-    curr_fx_cost    = (current_fx / 100) * payouts_volume
+    curr_fx_cost    = (current_fx / 100) * payouts_volume if include_fx else 0.0
     curr_proc_cost  = (current_payout_cost * amount_of_payouts
                        if curr_cost_type == "Fixed (USD per payout)"
                        else (current_payout_cost / 100) * payouts_volume)
     curr_total      = curr_fx_cost + curr_proc_cost
 
     stape_fee       = stape_fee_per_payout(amount_of_payouts)
-    stape_fx_cost   = (STAPE_FX_RATE / 100) * payouts_volume
+    stape_fx_cost   = (STAPE_FX_RATE / 100) * payouts_volume if include_fx else 0.0
     stape_proc_cost = stape_fee * amount_of_payouts
     stape_total     = stape_fx_cost + stape_proc_cost
     stape_proc_label = f"${stape_fee} × {fmt_num(amount_of_payouts)} payouts"
@@ -301,35 +314,53 @@ if not has_errors:
     # ── Breakdown metrics ─────────────────────────────────────────────────────
     st.markdown("<div style='height:0.2rem'></div>", unsafe_allow_html=True)
 
-    r1, r2, r3 = st.columns(3)
-    with r1: st.metric("Current FX Cost",         fmt_usd(curr_fx_cost))
-    with r2: st.metric("Current Processing Cost", fmt_usd(curr_proc_cost))
-    with r3: st.metric("Current Total",            fmt_usd(curr_total))
+    if include_fx:
+        r1, r2, r3 = st.columns(3)
+        with r1: st.metric("Current FX Cost",         fmt_usd(curr_fx_cost))
+        with r2: st.metric("Current Processing Cost", fmt_usd(curr_proc_cost))
+        with r3: st.metric("Current Total",            fmt_usd(curr_total))
+    else:
+        r2, r3 = st.columns(2)
+        with r2: st.metric("Current Processing Cost", fmt_usd(curr_proc_cost))
+        with r3: st.metric("Current Total",            fmt_usd(curr_total))
 
     st.markdown("<div style='height:0.5rem'></div>", unsafe_allow_html=True)
 
-    r4, r5, r6 = st.columns(3)
-    with r4:
-        st.metric("Stape FX Cost", fmt_usd(stape_fx_cost),
-                  delta=fmt_delta(stape_fx_cost - curr_fx_cost) if stape_fx_cost != curr_fx_cost else None,
-                  delta_color="inverse")
-    with r5:
-        st.metric("Stape Processing Cost", fmt_usd(stape_proc_cost),
-                  delta=fmt_delta(stape_proc_cost - curr_proc_cost) if stape_proc_cost != curr_proc_cost else None,
-                  delta_color="inverse")
-    with r6:
-        st.metric("Stape Total", fmt_usd(stape_total),
-                  delta=fmt_delta(stape_total - curr_total) if stape_total != curr_total else None,
-                  delta_color="inverse")
+    if include_fx:
+        r4, r5, r6 = st.columns(3)
+        with r4:
+            st.metric("Stape FX Cost", fmt_usd(stape_fx_cost),
+                      delta=fmt_delta(stape_fx_cost - curr_fx_cost) if stape_fx_cost != curr_fx_cost else None,
+                      delta_color="inverse")
+        with r5:
+            st.metric("Stape Processing Cost", fmt_usd(stape_proc_cost),
+                      delta=fmt_delta(stape_proc_cost - curr_proc_cost) if stape_proc_cost != curr_proc_cost else None,
+                      delta_color="inverse")
+        with r6:
+            st.metric("Stape Total", fmt_usd(stape_total),
+                      delta=fmt_delta(stape_total - curr_total) if stape_total != curr_total else None,
+                      delta_color="inverse")
+    else:
+        r5, r6 = st.columns(2)
+        with r5:
+            st.metric("Stape Processing Cost", fmt_usd(stape_proc_cost),
+                      delta=fmt_delta(stape_proc_cost - curr_proc_cost) if stape_proc_cost != curr_proc_cost else None,
+                      delta_color="inverse")
+        with r6:
+            st.metric("Stape Total", fmt_usd(stape_total),
+                      delta=fmt_delta(stape_total - curr_total) if stape_total != curr_total else None,
+                      delta_color="inverse")
 
     # ── Formula expander ──────────────────────────────────────────────────────
     st.markdown("<div style='height:0.5rem'></div>", unsafe_allow_html=True)
     with st.expander("🔍 How this was calculated"):
+        fx_row = (f"| FX Cost | `{current_fx:.2f}% × {fmt_usd(payouts_volume)}` = **{fmt_usd(curr_fx_cost)}** "
+                  f"| `{STAPE_FX_RATE:.1f}% × {fmt_usd(payouts_volume)}` = **{fmt_usd(stape_fx_cost)}** |\n"
+                  if include_fx else "")
         st.markdown(f"""
 | | Your Current Provider | With Stape |
 |---|---|---|
-| FX Cost | `{current_fx:.2f}% × {fmt_usd(payouts_volume)}` = **{fmt_usd(curr_fx_cost)}** | `{STAPE_FX_RATE:.1f}% × {fmt_usd(payouts_volume)}` = **{fmt_usd(stape_fx_cost)}** |
-| Processing Cost | `{curr_proc_label}` = **{fmt_usd(curr_proc_cost)}** | `{stape_proc_label}` = **{fmt_usd(stape_proc_cost)}** |
+{fx_row}| Processing Cost | `{curr_proc_label}` = **{fmt_usd(curr_proc_cost)}** | `{stape_proc_label}` = **{fmt_usd(stape_proc_cost)}** |
 | **Total** | **{fmt_usd(curr_total)}** | **{fmt_usd(stape_total)}** |
 | **Savings** | | **{fmt_usd(savings)}** ({savings_pct:.1f}%) |
         """)
