@@ -77,13 +77,11 @@ st.markdown("""
         margin-bottom: 1.4rem;
     }
     .input-card-title {
-        color: #ffffff;
-        font-size: 0.72rem;
+        color: #e2d4ff;
+        font-size: 1.05rem;
         font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.1em;
+        letter-spacing: 0.01em;
         margin-bottom: 1.1rem;
-        opacity: 0.6;
     }
 
     /* ── Stape rate pill (subtle, top) ── */
